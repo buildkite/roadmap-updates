@@ -113,16 +113,36 @@ echo "$DYNAMIC_YAML" | buildkite-agent pipeline upload
 echo "  ✅ Uploaded! New step will appear below."
 
 buildkite-agent annotate --style info --context dynamic-pipeline --scope job << 'ANNOTATION'
-## :pipeline: Dynamic Pipeline Upload
-```bash
-cat <<YAML | buildkite-agent pipeline upload
-steps:
-  - label: ":robot_face: Agent-generated step"
-    command: "echo 'decided at runtime'"
-YAML
+## :pipeline: Dynamic Pipelines + Buildkite SDK
+
+### The Problem
+> Today's CI is reactive. A lint rule fails, a test breaks, the build goes red — everything stops. Static YAML makes this worse — the pipeline can't adapt to what it finds.
+
+### How It Works
+A step generates pipeline YAML at runtime and pipes it to `buildkite-agent pipeline upload`. New steps appear on the fly — the pipeline rewrites itself mid-build.
+
 ```
-- 📖 [Dynamic Pipelines docs](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines)
-- 📖 [Buildkite SDK docs](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines/sdk)
+Analyze diff ──→ Generate steps ──→ Upload ──→ Execute
+On failure:    Diagnose ──→ Fix ──→ Commit ──→ Re-verify
+```
+
+### Use Cases
+- 🔧 **Auto-remediation** — lint fails? The agent runs the formatter, commits the fix, re-verifies. No human round-trip.
+- 🧪 **Smart test selection** — analyze the diff, run only the tests that cover changed code.
+- 🚀 **Roll-forward deploys** — low-impact test breaks in staging? Patch it, re-run, keep shipping.
+- 📐 **Conditional pipelines** — monorepo with 12 services? Generate steps only for what changed.
+
+### What Buildkite Adds
+- ✨ **Buildkite SDK** (preview) — typed pipeline generation in JS/TS, Python, Go, Ruby, C#
+- 🤖 **Agentic CI foundation** — AI agent owns the loop: detect → diagnose → remediate → verify → ship
+
+### The Payoff
+→ CI that fixes low-impact issues instead of blocking
+→ Developers stay in flow — fewer context switches
+→ Faster cycle times: minutes, not hours
+
+---
+📖 [Dynamic Pipelines docs](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines) · 📖 [Buildkite SDK docs](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines/sdk)
 ANNOTATION
 
 echo ""

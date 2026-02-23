@@ -55,16 +55,41 @@ echo "  🔗 github.com/buildkite/buildkite-mcp-server"
 
 buildkite-agent annotate --style info --context mcp-server --scope job << 'ANNOTATION'
 ## :electric_plug: MCP Server — AI Tools for Buildkite
+
+### The Problem
+> Debugging CI means tab-switching between your IDE and the Buildkite UI. Copy build numbers, click through jobs, scroll logs — context-switching that kills flow.
+
+### How It Works
+The MCP server lets AI tools query builds, read logs, and trigger pipelines directly. One config line and you're connected. OAuth handles auth.
+
 ```json
 { "mcpServers": { "buildkite": { "type": "url", "url": "https://mcp.buildkite.com/mcp" }}}
 ```
-**Tools:** Pipelines · Builds · Logs · Artifacts · Annotations · Clusters · Jobs · Tests
 
-**Modes:** Remote (OAuth) · Read-only · Local (self-hosted, Go)
+### What Buildkite Adds
 
-"Why did build 1234 fail?" — answered from your IDE.
-- 📖 [MCP Server docs](https://buildkite.com/docs/apis/mcp-server)
-- 🔗 [GitHub](https://github.com/buildkite/buildkite-mcp-server)
+| Category | Tools |
+|----------|-------|
+| 📋 Pipelines | list, get, create, update |
+| 🔨 Builds | trigger, get, list, wait |
+| 📜 Logs | read, search, tail |
+| 📎 Artifacts | list, download |
+| 📝 Annotations | list |
+| 🏗️ Clusters | list clusters + queues |
+| 🧱 Jobs | unblock, get logs |
+| 🧪 Tests | query runs + failures |
+
+**Three deployment modes:**
+- 🌐 **Remote:** `mcp.buildkite.com/mcp` (recommended, OAuth, auto-updated)
+- 🔒 **Read-only:** `mcp.buildkite.com/mcp/readonly`
+- 💻 **Local:** self-hosted, open source (Go), for automated pipelines
+
+### The Payoff
+→ "Why did build 1234 fail?" — answered from your IDE. No more tab-switching.
+→ AI agents that can self-diagnose their own builds.
+
+---
+📖 [MCP Server docs](https://buildkite.com/docs/apis/mcp-server) · 🔗 [GitHub](https://github.com/buildkite/buildkite-mcp-server)
 ANNOTATION
 
 echo ""

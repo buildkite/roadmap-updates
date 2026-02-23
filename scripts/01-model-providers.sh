@@ -54,15 +54,31 @@ echo ""
 echo "  📖 docs.buildkite.com/apis/model-providers"
 
 buildkite-agent annotate --style info --context model-providers --scope job << 'ANNOTATION'
-## :buildkite: Model Providers
+## :buildkite: Model Providers — Proxied LLM Access for CI
+
+### The Problem
+> Every team wanting AI in CI needs API keys — distributed per-pipeline, tracked in spreadsheets, rotated manually. No visibility into spend.
+
+### How It Works
+Buildkite proxies LLM calls through the agent. Jobs call Claude via the agent endpoint — no API keys to distribute.
+
 ```bash
 export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
 export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
 echo "Summarize this log" | claude -p
 ```
-- 📖 [Model Providers docs](https://buildkite.com/docs/apis/model-providers)
-- 📝 [What AI is teaching us about CI](https://buildkite.com/resources/blog/what-ai-is-teaching-us-about-ci)
-- 📝 [Agentic CI — Three practical examples](https://buildkite.com/resources/blog/building-ai-powered-ci-workflows-three-practical-examples)
+
+### What Buildkite Adds
+- 🟢 **Hosted Token** (Pro/Enterprise) — zero config, Buildkite manages the key
+- 🔑 **Bring Your Own Token** — your keys, Buildkite tracks usage
+- 📊 **Centralized usage monitoring** across all pipelines (Settings → Usage → Model Providers)
+- 🔌 Currently supports **Anthropic (Claude)** models
+
+### The Payoff
+→ AI in CI without key sprawl. One config for the whole org. Centralized cost tracking per pipeline.
+
+---
+📖 [Model Providers docs](https://buildkite.com/docs/apis/model-providers) · 📝 [What AI is teaching us about CI](https://buildkite.com/resources/blog/what-ai-is-teaching-us-about-ci) · 📝 [Agentic CI examples](https://buildkite.com/resources/blog/building-ai-powered-ci-workflows-three-practical-examples)
 ANNOTATION
 
 echo ""

@@ -59,17 +59,40 @@ echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets"
 
 buildkite-agent annotate --style info --context secrets-custom --scope job << 'ANNOTATION'
-## :closed_lock_with_key: Custom Env Var Mapping
+## :closed_lock_with_key: Secrets — Custom Env Var Mapping
+
+### The Problem
+> Secret names in the vault don't match what your app expects. `PROD_DB_CONNECTION_STRING` needs to become `DATABASE_URL`. Teams write wrapper scripts just to rename variables.
+
+### How It Works
+Map vault names to custom env var names in YAML. Or fetch on demand with `buildkite-agent secret get`.
+
 ```yaml
 secrets:
   MY_APP_TOKEN: DEMO_SECRET
   DATABASE_URL: PROD_DB_CONNECTION_STRING
 ```
+
 ```bash
 TOKEN=$(buildkite-agent secret get DEMO_SECRET)
 ```
-- Declarative (YAML) or imperative (`secret get`) — use what fits
-- 📖 [Secrets docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets)
+
+### What Buildkite Adds
+
+| `secrets:` YAML | `buildkite-agent secret get` |
+|-----------------|------------------------------|
+| Available at step start | Fetched on demand |
+| Declarative in YAML | Imperative in scripts |
+| Best for: known vars | Best for: dynamic needs |
+
+### The Payoff
+→ No wrapper scripts to rename variables
+→ One secret, many pipelines, different env var names
+→ Declarative or imperative — your choice
+→ Values are auto-redacted from logs
+
+---
+📖 [Secrets docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets)
 ANNOTATION
 
 echo ""

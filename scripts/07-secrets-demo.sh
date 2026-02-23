@@ -55,7 +55,14 @@ echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets"
 
 buildkite-agent annotate --style info --context secrets-yaml --scope job << 'ANNOTATION'
-## :key: Secrets YAML
+## :key: Secrets — YAML Integration
+
+### The Problem
+> Getting secrets into CI jobs means plugins, environment hooks, or wrapper scripts. Every team rolls their own approach. Onboarding a new pipeline takes longer than it should.
+
+### How It Works
+Add a `secrets:` block to your step YAML. Values appear as environment variables. That's it.
+
 ```yaml
 steps:
   - label: "Deploy"
@@ -64,9 +71,19 @@ steps:
       - DATABASE_URL
       - API_KEY
 ```
-- 🔒 Auto-redacted in logs — no plugins needed (agent v3.106.0+)
-- 🔐 Encrypted at rest and in transit, scoped to a cluster
-- 📖 [Secrets docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets)
+
+### What Buildkite Adds
+- 🔒 **Auto-redacted in logs** — no accidental leaks
+- 📦 **Built into the agent** (v3.106.0+) — no plugins needed
+- 🔐 **Encrypted** at rest and in transit
+- 🏗️ **Scoped to a cluster** — secrets don't leak across boundaries
+
+### The Payoff
+→ Two lines of YAML replaces a plugin + hook chain.
+→ Consistent across every pipeline. Auto-redaction means fewer "oops" moments.
+
+---
+📖 [Secrets docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets)
 ANNOTATION
 
 echo ""

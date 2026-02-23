@@ -65,16 +65,33 @@ echo "  📖 docs.buildkite.com/pipelines/tutorials/github-merge-queue"
 
 buildkite-agent annotate --style info --context merge-queue --scope job << 'ANNOTATION'
 ## :merge: GitHub Merge Queue Support
+
+### The Problem
+> PRs pass CI individually, then break main when merged together. The faster your team ships, the worse this gets — engineers waste time rebasing, re-running CI, and playing "merge chicken."
+
+### How It Works
+GitHub batches PRs into "merge groups." Each group gets a speculative commit — the exact code that main will look like if the group merges. CI runs against reality, not hope.
+
+### What Buildkite Adds
+- **First-class merge queue builds** — not a branch hack. Dedicated UI section, unique env vars, native conditionals.
+- **Auto-cancel invalidated builds** — queue reshuffles? Stale builds die immediately. No wasted compute.
+- **Conditional steps** — run heavy checks only in the queue:
+
 ```yaml
 steps:
   - label: "Full integration suite"
     if: build.merge_queue.base_commit != null
     command: run-full-integration-suite.sh
 ```
-**Features:** First-class merge queue builds · Auto-cancel invalidated builds · Conditional steps · Smart `if_changed` detection
 
-main stays green. Engineers stop babysitting merges. CI spend goes down.
-- 📖 [Merge Queue tutorial](https://buildkite.com/docs/pipelines/tutorials/github-merge-queue)
+- **Smart `if_changed` detection** — only test what the PR actually touched, even inside the queue.
+
+### The Payoff
+→ main stays green. Engineers stop babysitting merges.
+→ CI spend goes down — redundant builds auto-killed.
+
+---
+📖 [Merge Queue tutorial](https://buildkite.com/docs/pipelines/tutorials/github-merge-queue)
 ANNOTATION
 
 echo ""

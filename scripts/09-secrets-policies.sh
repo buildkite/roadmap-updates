@@ -44,15 +44,34 @@ echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets/access-policies"
 
 buildkite-agent annotate --style info --context secrets-policies --scope job << 'ANNOTATION'
-## :shield: Access Policies
+## :shield: Secrets — Access Policies
+
+### The Problem
+> Any pipeline can access any secret. There's no least-privilege. A typo in a dev pipeline could pull production credentials. Auditors ask "who can access what?" and you don't have a good answer.
+
+### How It Works
+YAML-defined policies scope secrets by pipeline, branch, queue, and creator. Only builds that match the policy get access.
+
 ```yaml
 - pipeline_slug: "deploy-*"
   build_branch: "main"
   cluster_queue_key: "production"
 ```
-**1st-party (high assurance):** `pipeline_id` · `build_source` · `cluster_queue_id`
-**3rd-party (convenience):** `pipeline_slug` · `build_branch` · `build_creator` · `cluster_queue_key` · `build_creator_team`
-- 📖 [Access Policies docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets/access-policies)
+
+### What Buildkite Adds
+
+| Assurance Level | Claims |
+|----------------|--------|
+| **1st-party** (high assurance) | `pipeline_id` · `build_source` · `cluster_queue_id` |
+| **3rd-party** (convenience) | `pipeline_slug` · `build_branch` · `build_creator` · `build_creator_team` · `cluster_queue_key` |
+
+### The Payoff
+→ Prod secrets locked to prod pipelines — by policy, not trust
+→ Auditable: policies are YAML, version-controlled, reviewable
+→ Least-privilege without slowing teams down
+
+---
+📖 [Access Policies docs](https://buildkite.com/docs/pipelines/security/secrets/buildkite-secrets/access-policies)
 ANNOTATION
 
 echo ""

@@ -137,15 +137,25 @@ else
 fi
 
 buildkite-agent annotate --style info --context "test-engine-shard-${SHARD}" --scope job << ANNOTATION
-## :test_tube: Test Engine — Shard $SHARD/$TOTAL
+## :test_tube: Test Engine — Parallel with bktec (Shard $SHARD/$TOTAL)
+
+\`bktec\` splits and distributes tests across parallel agents using timing-based splitting.
+
 \`\`\`yaml
 steps:
   - label: "Tests"
     command: bktec run --test-runner pytest
     parallelism: 8
 \`\`\`
-- 🆕 bktec v2.0.0 — Dynamic parallelism, sub-command support
-- 🆕 bktec v2.1.0 — Split slow files by example, custom test runner, tag filters
+
+📊 Timing-based split · 🔄 Auto-distribute · 📈 Report to Test Engine
+
+### What's New
+- 🆕 **bktec v2.0.0** — Dynamic parallelism, sub-command support
+- 🆕 **bktec v2.1.0** — Split slow files by example, custom test runner, tag filters
+
+---
+📖 [Test Engine docs](https://buildkite.com/docs/test-engine) · 📖 [bktec CLI](https://buildkite.com/docs/test-engine/bktec)
 ANNOTATION
 
 echo ""

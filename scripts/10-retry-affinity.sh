@@ -64,18 +64,38 @@ echo "  📖 docs.buildkite.com/agent/v3/self-hosted/prioritization"
 
 buildkite-agent annotate --style info --context retry-affinity --scope job << ANNOTATION
 ## :arrows_counterclockwise: Retry Agent Affinity
+
+### The Problem
+> Retried jobs land on random agents. If the failure was a flaky host, you retry on the same broken machine. If the job needs warm caches, you retry on a cold one. Lose-lose.
+
+### How It Works
+A queue-level setting controls where retried jobs go. Two modes, opposite trade-offs:
+
+| Prefer Warmest (default) | Prefer Different |
+|--------------------------|------------------|
+| Same agent, warm caches | Different agent, fresh start |
+| Docker layer cache, git checkout | Flaky host isolation, hardware issues |
+
 \`\`\`yaml
 retry:
   automatic:
     - exit_status: "*"
       limit: 2
 \`\`\`
-Agent: \`$AGENT_NAME\` · Retry: \`$RETRY_COUNT\`
-| Prefer Warmest (default) | Prefer Different |
-|--------------------------|------------------|
-| Same agent, warm caches | Different agent, fresh start |
-| Docker layer cache, git checkout | Flaky host isolation, hardware issues |
-- 📖 [Agent Prioritization docs](https://buildkite.com/docs/agent/v3/self-hosted/prioritization)
+
+### What Buildkite Adds
+- ⚙️ **Configured per queue** (self-hosted): Cluster → Queue → Agent Affinity
+- 🔢 **Agent priority:** \`buildkite-agent start --priority 10\` — higher-priority agents get jobs first
+- ✅ **Success-based preference:** agents that recently completed jobs successfully are favored
+
+**Live status:** Agent: \`$AGENT_NAME\` · Retry: \`$RETRY_COUNT\`
+
+### The Payoff
+→ Retries that actually fix the problem — not random roulette
+→ Warm caches when you want them, fresh starts when you need them
+
+---
+📖 [Agent Prioritization docs](https://buildkite.com/docs/agent/v3/self-hosted/prioritization)
 ANNOTATION
 
 echo ""

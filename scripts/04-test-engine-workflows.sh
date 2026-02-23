@@ -62,17 +62,45 @@ echo "  📖 docs.buildkite.com/test-engine/workflows"
 
 buildkite-agent annotate --style info --context test-engine-workflows --scope job << ANNOTATION
 ## :bar_chart: Test Engine Workflows — Monitors & Actions
+
+### The Problem
+> Flaky tests rot in the suite. Nobody notices until they block a release. Engineers manually triage failures, dig through dashboards, and file tickets by hand.
+
+### How It Works
+Workflows are event-driven — they evaluate each time new test data is ingested. A monitor watches test health and fires alarm/recover events that trigger automated actions.
+
 \`\`\`
 Monitor: "Passed on retry" / "Transition count"
     ├── 🚨 ALARM  ──→  Mute + Label + Slack + Linear
     └── 🟢 RECOVER ──→  Enable + Remove label + Slack
 \`\`\`
-**Monitors:** Transition Count · Passed on Retry · Probabilistic (Enterprise) · New Test (Beta)
 
-**Actions:** Change state · Add/Remove labels · Slack · Webhook · Create Linear issue
-- 🔗 [Test Suite]($SUITE_URL)
-- 📖 [Workflows docs](https://buildkite.com/docs/test-engine/workflows)
-- 📖 [Monitors](https://buildkite.com/docs/test-engine/workflows/monitors) · [Actions](https://buildkite.com/docs/test-engine/workflows/actions)
+### Monitors
+
+| Monitor | Description |
+|---------|-------------|
+| **Transition Count** | Track pass/fail flips over a window. High score = flaky. |
+| **Passed on Retry** | Same commit, pass + fail = flaky. Alarm fires immediately. |
+| **Probabilistic** (Ent) | Meta's Bayesian model: predicts probability of flaking next run. |
+| **New Test** (Beta) | Fires on first-ever execution. |
+
+### Actions
+
+| 🚨 Alarm | ✅ Recover |
+|----------|-----------|
+| 🔇 Change state → muted | ▶ Change state → enabled |
+| 🏷️ Add label "flaky" | 🏷️ Remove label "flaky" |
+| 💬 Slack → #test-health | 💬 Slack → #test-health |
+| 🔗 Webhook → PagerDuty | |
+| 📋 Create Linear issue | |
+
+### The Payoff
+→ Flaky tests get caught and quarantined automatically
+→ When they stabilize, they re-enable themselves — no manual triage
+→ Tests self-heal: mute on alarm, restore on recover
+
+---
+🔗 [Test Suite]($SUITE_URL) · 📖 [Workflows docs](https://buildkite.com/docs/test-engine/workflows) · 📖 [Monitors](https://buildkite.com/docs/test-engine/workflows/monitors) · [Actions](https://buildkite.com/docs/test-engine/workflows/actions)
 ANNOTATION
 
 echo ""
