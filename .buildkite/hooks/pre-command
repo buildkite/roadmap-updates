@@ -1,47 +1,48 @@
 #!/bin/bash
 
 # Configure Claude API access for the claude-summarize plugin.
-#
-# Uses Buildkite Hosted Models ($BUILDKITE_AGENT_ACCESS_TOKEN) with
-# fallback to ANTHROPIC_API_KEY from Buildkite Secrets.
+# Uses Buildkite Hosted Models ($BUILDKITE_AGENT_ACCESS_TOKEN).
 
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -n "${BUILDKITE_AGENT_ENDPOINT:-}" ]]; then
   HOSTED_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
 
-  # Quick diagnostic: test the hosted models endpoint
-  DIAG=$(curl -s --max-time 5 \
+  # Diagnostic: test /v1/models AND /v1/messages to isolate the 401
+  MODELS_CODE=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" \
+    -H "x-api-key: $BUILDKITE_AGENT_ACCESS_TOKEN" \
+    "$HOSTED_URL/v1/models" 2>/dev/null || echo "000")
+
+  MESSAGES_RESP=$(curl -s --max-time 10 -w "\nHTTP_CODE:%{http_code}" \
     -H "Content-Type: application/json" \
     -H "x-api-key: $BUILDKITE_AGENT_ACCESS_TOKEN" \
-    -w "\nHTTP_CODE:%{http_code}" \
-    "$HOSTED_URL/v1/models" 2>/dev/null || echo "HTTP_CODE:000")
-  HTTP_CODE=$(echo "$DIAG" | grep -o 'HTTP_CODE:[0-9]*' | cut -d: -f2)
+    -H "anthropic-version: 2023-06-01" \
+    -d '{"model":"claude-sonnet-4-5","max_tokens":10,"messages":[{"role":"user","content":"Say hi"}]}' \
+    "$HOSTED_URL/v1/messages" 2>/dev/null || echo "HTTP_CODE:000")
+  MESSAGES_CODE=$(echo "$MESSAGES_RESP" | grep -o 'HTTP_CODE:[0-9]*' | cut -d: -f2)
 
-  if [[ "$HTTP_CODE" == "200" ]]; then
-    echo "~~~ :white_check_mark: Hosted Models endpoint OK (HTTP $HTTP_CODE)"
+  echo "~~~ :mag: Hosted Models diagnostics"
+  echo "  GET  /v1/models   → HTTP $MODELS_CODE"
+  echo "  POST /v1/messages → HTTP $MESSAGES_CODE"
+
+  if [[ "$MESSAGES_CODE" != "200" ]]; then
+    echo "  Response body:"
+    echo "$MESSAGES_RESP" | grep -v 'HTTP_CODE:' | head -3 | sed 's/[a-zA-Z0-9_-]\{30,\}/[REDACTED]/g'
+  fi
+
+  if [[ "$MODELS_CODE" == "200" || "$MESSAGES_CODE" == "200" ]]; then
+    echo "  → Using Hosted Models for plugin"
     export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
     export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANTHROPIC_BASE_URL="$HOSTED_URL"
-    export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
-    export ANTHROPIC_BASE_URL="$HOSTED_URL"
   else
-    # Show the error (redact any tokens)
-    ERROR_BODY=$(echo "$DIAG" | grep -v 'HTTP_CODE:' | head -5)
-    echo "~~~ :warning: Hosted Models returned HTTP $HTTP_CODE"
-    echo "$ERROR_BODY" | sed 's/[a-zA-Z0-9_-]\{20,\}/[REDACTED]/g'
-    echo ""
-    echo "Falling back to ANTHROPIC_API_KEY from Buildkite Secrets..."
-
+    echo "  → Falling back to ANTHROPIC_API_KEY secret"
     KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
     if [[ -n "$KEY" ]]; then
       export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$KEY"
-      echo "Secret found, set BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY"
-    else
-      echo "No ANTHROPIC_API_KEY secret found"
     fi
   fi
 
-  # Always export hosted models vars for other scripts
-  export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-$BUILDKITE_AGENT_ACCESS_TOKEN}"
-  export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-$HOSTED_URL}"
+  # Always set hosted models env vars for other scripts
+  export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+  export ANTHROPIC_BASE_URL="$HOSTED_URL"
 else
   KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
   if [[ -n "$KEY" ]]; then
