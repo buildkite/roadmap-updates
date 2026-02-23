@@ -4,6 +4,12 @@
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -n "${BUILDKITE_AGENT_ENDPOINT:-}" ]]; then
   export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
   export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
+
+  # Debug: list available models
+  echo "~~~ :mag: Available hosted models:"
+  curl -s --max-time 5 \
+    -H "x-api-key: $BUILDKITE_AGENT_ACCESS_TOKEN" \
+    "$BUILDKITE_AGENT_ENDPOINT/ai/anthropic/v1/models" 2>/dev/null | head -20
 fi
 
 # Wrap the claude-summarize plugin's post-command hook to inject the
