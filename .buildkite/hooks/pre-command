@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Diagnostics only — actual token setup is in the environment hook.
+# Set hosted models env vars for scripts (e.g., 01-model-providers.sh).
+# Plugin auth is handled via single-$ expansion in pipeline.yml.
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -n "${BUILDKITE_AGENT_ENDPOINT:-}" ]]; then
-  echo "~~~ :mag: Hosted Models: credentials set via environment hook"
+  export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+  export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
 fi
