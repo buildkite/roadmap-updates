@@ -24,6 +24,7 @@ done
 if [[ -n "${PLUGIN_PC:-}" && ! -f "${PLUGIN_PC}.orig" ]]; then
   ORIG="${PLUGIN_PC}.orig"
   cp "$PLUGIN_PC" "$ORIG"
+  chmod +x "$ORIG"
   cat > "$PLUGIN_PC" << EOF
 #!/bin/bash
 export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="\$ANTHROPIC_API_KEY"
