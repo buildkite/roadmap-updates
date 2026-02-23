@@ -1,10 +1,25 @@
 #!/bin/bash
 
-# Export ANTHROPIC_API_KEY from Buildkite secrets for the Claude Summarize plugin.
-# The plugin reads this env var via its $$ANTHROPIC_API_KEY config reference.
-if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-  ANTHROPIC_API_KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
-  if [[ -n "$ANTHROPIC_API_KEY" ]]; then
-    export ANTHROPIC_API_KEY
+# Configure the claude-summarize plugin to use Buildkite Hosted Models
+# or fall back to a direct Anthropic API key from Buildkite Secrets.
+#
+# The $$VAR syntax in plugin YAML config resolves to a literal "$VAR" string,
+# not the expanded value. We must set the plugin env vars explicitly here.
+#
+# Hook order: plugin environment → repo pre-command → command → plugin post-command
+# The post-command hook re-reads these env vars, so setting them here works.
+
+if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -n "${BUILDKITE_AGENT_ENDPOINT:-}" ]]; then
+  # Preferred: use Buildkite Hosted Models (no separate API key needed)
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
+  export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+  export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
+else
+  # Fallback: fetch from Buildkite Secrets
+  KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
+  if [[ -n "$KEY" ]]; then
+    export ANTHROPIC_API_KEY="$KEY"
+    export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$KEY"
   fi
 fi
