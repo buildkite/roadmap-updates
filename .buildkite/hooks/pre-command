@@ -13,18 +13,3 @@ if [[ -z "${ANTHROPIC_API_KEY:-}" && -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -
   export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
   export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
 fi
-
-# Wrap the claude-summarize plugin's post-command hook to inject the
-# ANTHROPIC_API_KEY at runtime (the agent re-injects literal YAML values
-# before each plugin hook, so env vars need to be set right before exec).
-PLUGIN_PC=$(find /buildkite/plugins -path "*claude-summarize*" -name "post-command" 2>/dev/null | head -1)
-if [[ -n "$PLUGIN_PC" && ! -f "${PLUGIN_PC}.orig" ]]; then
-  ORIG="${PLUGIN_PC}.orig"
-  cp "$PLUGIN_PC" "$ORIG"
-  cat > "$PLUGIN_PC" << EOF
-#!/bin/bash
-export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="\$ANTHROPIC_API_KEY"
-exec "$ORIG" "\$@"
-EOF
-  chmod +x "$PLUGIN_PC"
-fi
