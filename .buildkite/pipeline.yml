@@ -25,6 +25,12 @@ steps:
         key: "ai-failure-analysis"
         command: scripts/12-ai-failure-analysis.sh
         soft_fail: true
+        plugins:
+          - buildkite-plugins/claude-summarize#v1.1.0:
+              api_key: "$$ANTHROPIC_API_KEY"
+              model: "claude-sonnet-4-6"
+              trigger: "on-failure"
+              custom_prompt: "A production deployment failed. Analyze the logs, identify the root cause, and provide clear next steps for the developer. Be concise and actionable."
 
   # ──────────────────────────────────────────────
   # 🧪 Feature 2: Test Engine Workflows
