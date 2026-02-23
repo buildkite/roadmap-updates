@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Export ANTHROPIC_API_KEY from Buildkite secrets for the Claude Summarize plugin.
+# The plugin reads this env var via its $$ANTHROPIC_API_KEY config reference.
+if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+  ANTHROPIC_API_KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
+  if [[ -n "$ANTHROPIC_API_KEY" ]]; then
+    export ANTHROPIC_API_KEY
+  fi
+fi

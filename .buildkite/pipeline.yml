@@ -23,8 +23,6 @@ steps:
       - label: ":claude: 1c. Claude Build Summary"
         key: "claude-summary"
         command: "echo '🤖 This step demonstrates the Claude Summarize plugin analyzing a build and generating an AI annotation.'"
-        secrets:
-          - ANTHROPIC_API_KEY
         plugins:
           - buildkite-plugins/claude-summarize#v1.1.0:
               api_key: "$$ANTHROPIC_API_KEY"
@@ -35,8 +33,6 @@ steps:
         key: "fake-failure"
         command: scripts/11-fake-failure.sh
         soft_fail: true
-        secrets:
-          - ANTHROPIC_API_KEY
         plugins:
           - buildkite-plugins/claude-summarize#v1.1.0:
               api_key: "$$ANTHROPIC_API_KEY"
