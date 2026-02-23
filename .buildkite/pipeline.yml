@@ -34,7 +34,7 @@ steps:
               api_key: "$$ANTHROPIC_API_KEY"
               model: "claude-sonnet-4-6"
               trigger: "on-failure"
-              annotation_scope: "job"
+              annotate: "false"
               custom_prompt: "A production deployment failed. Analyze the logs, identify the root cause, and provide clear next steps for the developer. Be concise and actionable."
 
   # ──────────────────────────────────────────────
