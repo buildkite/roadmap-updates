@@ -68,7 +68,7 @@ steps:
   # ──────────────────────────────────────────────
   # 🔀 Feature 4: GitHub Merge Queue
   # ──────────────────────────────────────────────
-  - group: ":merge: Feature 4 — GitHub Merge Queue"
+  - group: ":github: Feature 4 — GitHub Merge Queue"
     key: "merge-queue"
     depends_on: "mcp-server"
     steps:
