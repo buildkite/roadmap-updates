@@ -1,22 +1,40 @@
 #!/bin/bash
 
-# Configure Claude API access for both the claude-summarize plugin and
-# general scripts (e.g., model providers demo).
+# Configure Claude API access for the claude-summarize plugin.
 #
-# The plugin's post-command hook runs a connectivity pre-check:
-#   curl -s --max-time 5 "${base_url}/v1/ping"
-# which fails against the hosted models proxy (no unauthenticated ping).
-# So we use the direct Anthropic API key from secrets for the plugin,
-# and set up hosted models env vars separately for other scripts.
+# Strategy: Try hosted models first (agent access token), fall back to
+# ANTHROPIC_API_KEY from Buildkite Secrets.
+#
+# The plugin does a connectivity pre-check: curl ${base_url}/v1/ping
+# We test that here to pick the right approach.
 
-# Plugin: use direct Anthropic API key (ping check passes against api.anthropic.com)
-KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
-if [[ -n "$KEY" ]]; then
-  export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$KEY"
-fi
-
-# Other scripts: set up hosted models access
+# Debug: test hosted models endpoint reachability
 if [[ -n "${BUILDKITE_AGENT_ACCESS_TOKEN:-}" && -n "${BUILDKITE_AGENT_ENDPOINT:-}" ]]; then
-  export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
-  export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
+  HOSTED_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
+  PING_CODE=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" "$HOSTED_URL/v1/ping" 2>/dev/null || echo "000")
+  echo "~~~ :mag: Hosted models ping check: $HOSTED_URL/v1/ping → HTTP $PING_CODE"
+
+  if [[ "$PING_CODE" != "000" ]]; then
+    # Endpoint is reachable — use hosted models
+    echo "Using Buildkite Hosted Models for claude-summarize plugin"
+    export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+    export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_ANTHROPIC_BASE_URL="$HOSTED_URL"
+    export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+    export ANTHROPIC_BASE_URL="$HOSTED_URL"
+  else
+    echo "Hosted models endpoint unreachable, falling back to Buildkite Secrets"
+    KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
+    if [[ -n "$KEY" ]]; then
+      export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$KEY"
+    fi
+    # Still set hosted models env vars for other scripts
+    export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
+    export ANTHROPIC_BASE_URL="$HOSTED_URL"
+  fi
+else
+  # No agent token — use Buildkite Secrets directly
+  KEY=$(buildkite-agent secret get ANTHROPIC_API_KEY 2>/dev/null || true)
+  if [[ -n "$KEY" ]]; then
+    export BUILDKITE_PLUGIN_CLAUDE_SUMMARIZE_API_KEY="$KEY"
+  fi
 fi
