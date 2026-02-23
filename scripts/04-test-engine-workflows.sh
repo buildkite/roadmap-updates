@@ -60,7 +60,7 @@ echo ""
 echo "  🔗 Suite: $SUITE_URL"
 echo "  📖 docs.buildkite.com/test-engine/workflows"
 
-buildkite-agent annotate --style info --context test-engine-workflows << ANNOTATION
+buildkite-agent annotate --style info --context test-engine-workflows --scope job << ANNOTATION
 ## :bar_chart: Test Engine Workflows — Monitors & Actions
 \`\`\`
 Monitor: "Passed on retry" / "Transition count"
