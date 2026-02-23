@@ -63,7 +63,7 @@ echo "  (redundant builds auto-killed)."
 echo ""
 echo "  📖 docs.buildkite.com/pipelines/tutorials/github-merge-queue"
 
-buildkite-agent annotate --style info --context merge-queue << 'ANNOTATION'
+buildkite-agent annotate --style info --context merge-queue --scope job << 'ANNOTATION'
 ## :merge: GitHub Merge Queue Support
 ```yaml
 steps:

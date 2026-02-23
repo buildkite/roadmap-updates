@@ -62,7 +62,7 @@ echo "  Warm caches when you want them, fresh starts when you need them."
 echo ""
 echo "  📖 docs.buildkite.com/agent/v3/self-hosted/prioritization"
 
-buildkite-agent annotate --style info --context retry-affinity << ANNOTATION
+buildkite-agent annotate --style info --context retry-affinity --scope job << ANNOTATION
 ## :arrows_counterclockwise: Retry Agent Affinity
 \`\`\`yaml
 retry:

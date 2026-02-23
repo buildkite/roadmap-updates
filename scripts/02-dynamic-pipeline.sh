@@ -112,7 +112,7 @@ echo "  Uploading dynamic step now..."
 echo "$DYNAMIC_YAML" | buildkite-agent pipeline upload
 echo "  ✅ Uploaded! New step will appear below."
 
-buildkite-agent annotate --style info --context dynamic-pipeline << 'ANNOTATION'
+buildkite-agent annotate --style info --context dynamic-pipeline --scope job << 'ANNOTATION'
 ## :pipeline: Dynamic Pipeline Upload
 ```bash
 cat <<YAML | buildkite-agent pipeline upload

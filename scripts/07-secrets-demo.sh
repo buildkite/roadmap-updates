@@ -54,7 +54,7 @@ echo "  Auto-redaction means fewer \"oops\" moments."
 echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets"
 
-buildkite-agent annotate --style info --context secrets-yaml << 'ANNOTATION'
+buildkite-agent annotate --style info --context secrets-yaml --scope job << 'ANNOTATION'
 ## :key: Secrets YAML
 ```yaml
 steps:

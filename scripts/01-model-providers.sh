@@ -53,7 +53,7 @@ echo "  Centralized cost tracking per pipeline."
 echo ""
 echo "  📖 docs.buildkite.com/apis/model-providers"
 
-buildkite-agent annotate --style info --context model-providers << 'ANNOTATION'
+buildkite-agent annotate --style info --context model-providers --scope job << 'ANNOTATION'
 ## :buildkite: Model Providers
 ```bash
 export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"

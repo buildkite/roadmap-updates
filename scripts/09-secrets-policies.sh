@@ -43,7 +43,7 @@ echo "  Least-privilege without slowing teams down."
 echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets/access-policies"
 
-buildkite-agent annotate --style info --context secrets-policies << 'ANNOTATION'
+buildkite-agent annotate --style info --context secrets-policies --scope job << 'ANNOTATION'
 ## :shield: Access Policies
 ```yaml
 - pipeline_slug: "deploy-*"

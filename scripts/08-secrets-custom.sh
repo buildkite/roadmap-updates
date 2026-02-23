@@ -40,6 +40,10 @@ TOKEN_VALUE="${MY_APP_TOKEN:-""}"
 if [[ -n "$TOKEN_VALUE" ]]; then
   TOKEN_LEN="${#TOKEN_VALUE}"
   echo "  ✅ MY_APP_TOKEN is available! ($TOKEN_LEN chars, mapped from DEMO_SECRET)"
+  echo ""
+  echo "  Printing the raw value to prove auto-redaction:"
+  echo "  → $TOKEN_VALUE"
+  echo "  (Buildkite replaced it with [REDACTED] automatically)"
 else
   echo "  ⚠️  MY_APP_TOKEN not set — DEMO_SECRET doesn't exist yet"
 fi
@@ -47,13 +51,14 @@ echo ""
 
 echo "  ── THE PAYOFF ───────────────────────────────────────────"
 echo ""
-echo "  No wrapper scripts to rename variables."
-echo "  One secret, many pipelines, different env var names."
-echo "  Declarative or imperative — your choice."
+echo "  → No wrapper scripts to rename variables."
+echo "  → One secret, many pipelines, different env var names."
+echo "  → Declarative or imperative — your choice."
+echo "  → Values are auto-redacted from logs — no leaks."
 echo ""
 echo "  📖 docs.buildkite.com/pipelines/security/secrets/buildkite-secrets"
 
-buildkite-agent annotate --style info --context secrets-custom << 'ANNOTATION'
+buildkite-agent annotate --style info --context secrets-custom --scope job << 'ANNOTATION'
 ## :closed_lock_with_key: Custom Env Var Mapping
 ```yaml
 secrets:

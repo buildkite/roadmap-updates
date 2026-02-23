@@ -53,7 +53,7 @@ echo ""
 echo "  📖 buildkite.com/docs/apis/mcp-server"
 echo "  🔗 github.com/buildkite/buildkite-mcp-server"
 
-buildkite-agent annotate --style info --context mcp-server << 'ANNOTATION'
+buildkite-agent annotate --style info --context mcp-server --scope job << 'ANNOTATION'
 ## :electric_plug: MCP Server — AI Tools for Buildkite
 ```json
 { "mcpServers": { "buildkite": { "type": "url", "url": "https://mcp.buildkite.com/mcp" }}}

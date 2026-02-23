@@ -12,7 +12,7 @@ echo ""
 echo "  ┌───────────────────────────────────────────┐"
 echo '  │  steps:                                   │'
 echo '  │    - label: "Tests"                       │'
-echo '  │      command: bktec --test-cmd "pytest"   │'
+echo '  │      command: bktec run --test-runner pytest │'
 echo "  │      parallelism: 8                       │"
 echo "  └───────────────────────────────────────────┘"
 echo ""
@@ -136,16 +136,16 @@ else
   echo "  ⚠️  BUILDKITE_ANALYTICS_TOKEN not set — skipping upload"
 fi
 
-buildkite-agent annotate --style info --context "test-engine-shard-${SHARD}" << ANNOTATION
+buildkite-agent annotate --style info --context "test-engine-shard-${SHARD}" --scope job << ANNOTATION
 ## :test_tube: Test Engine — Shard $SHARD/$TOTAL
 \`\`\`yaml
 steps:
   - label: "Tests"
-    command: bktec --test-cmd "pytest"
+    command: bktec run --test-runner pytest
     parallelism: 8
 \`\`\`
-- 🆕 [bktec v2.0.0](https://buildkite.com/changelog/171-bktec-v2-0-0) — Dynamic parallelism
-- 🆕 [bktec v2.1.0](https://buildkite.com/changelog/175-bktec-v2-1-0) — Improved splitting
+- 🆕 bktec v2.0.0 — Dynamic parallelism, sub-command support
+- 🆕 bktec v2.1.0 — Split slow files by example, custom test runner, tag filters
 ANNOTATION
 
 echo ""

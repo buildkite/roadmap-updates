@@ -55,7 +55,7 @@ echo "  on-ramp for agentic workflows."
 echo ""
 echo "  📖 docs.buildkite.com/apis/webhooks/incoming/pipeline-triggers"
 
-buildkite-agent annotate --style info --context pipeline-triggers << 'ANNOTATION'
+buildkite-agent annotate --style info --context pipeline-triggers --scope job << 'ANNOTATION'
 ## :webhook: Pipeline Triggers
 - Generic webhook, GitHub (verified), Linear (verified)
 - Payload: `buildkite-agent meta-data get buildkite:webhook`
