@@ -13,17 +13,23 @@ echo "    🔑 Bring Your Own Token   — your API keys, Buildkite tracks usage"
 echo ""
 echo "--- :anthropic: Using Claude via Model Providers"
 echo ""
-echo "  The magic is two env vars that turn Buildkite into your LLM proxy:"
+echo "  Two env vars are all you need — they're set automatically in every job:"
 echo ""
-echo '    export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"'
-echo '    export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"'
+echo '    ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"'
+echo '    ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"'
 echo ""
-echo "  Then use any Anthropic-compatible tool normally:"
+echo "  Use with Claude Code, the Anthropic SDK, or raw curl:"
 echo ""
 echo '    echo "Summarize this log" | claude -p'
-echo '    python -c "import anthropic; client = anthropic.Client()"'
 echo ""
-echo "  That's it. Buildkite proxies the request and tracks usage."
+echo "  Or call the API directly:"
+echo ""
+echo '    curl -X POST "$BUILDKITE_AGENT_ENDPOINT/ai/anthropic/v1/messages" \'
+echo '      -H "Content-Type: application/json" \'
+echo '      -H "x-api-key: $BUILDKITE_AGENT_ACCESS_TOKEN" \'
+echo "      -d '{\"model\": \"claude-sonnet-4-5\", \"max_tokens\": 1000, \"messages\": [...]}'"
+echo ""
+echo "  Buildkite proxies the request and tracks usage automatically."
 
 echo ""
 echo "--- :mag: Live Environment Check"
@@ -52,12 +58,17 @@ buildkite-agent annotate --style info --context model-providers << 'ANNOTATION'
 
 ### Quick Setup
 ```bash
-# Add to your pipeline script — that's the entire setup
+# These env vars are set automatically in every Buildkite job
 export ANTHROPIC_BASE_URL="$BUILDKITE_AGENT_ENDPOINT/ai/anthropic"
 export ANTHROPIC_API_KEY="$BUILDKITE_AGENT_ACCESS_TOKEN"
 
-# Now use Claude as normal
+# Use Claude Code
 echo "Analyze this diff" | claude -p
+
+# Or call the API directly
+curl -X POST "$BUILDKITE_AGENT_ENDPOINT/ai/anthropic/v1/messages" \
+  -H "x-api-key: $BUILDKITE_AGENT_ACCESS_TOKEN" \
+  -d '{"model": "claude-sonnet-4-5", "max_tokens": 1000, "messages": [...]}'
 ```
 
 ### Auth Options
