@@ -3,65 +3,76 @@ set -euo pipefail
 source "$(dirname "$0")/_lib.sh"
 
 SUITE_URL="https://buildkite.com/organizations/roadmap-updates/analytics/suites/roadmap-updates-demo"
+IMG_URL="https://buildkite.com/docs/assets/alarm-and-recovery-light-DZI9FFG6.png"
 
 echo "+++ :bar_chart: Test Engine Workflows — Monitors & Actions"
 echo ""
 
 echo "  ── THE PROBLEM ──────────────────────────────────────────"
 echo ""
-echo "  Flaky tests rot in the suite. Nobody notices until they block a release."
-echo "  Engineers manually triage failures, dig through dashboards, and file"
-echo "  tickets by hand — if they bother at all."
+echo "  Flaky tests rot in the suite. Nobody notices until they"
+echo "  block a release. Engineers manually triage failures, dig"
+echo "  through dashboards, and file tickets by hand."
 echo ""
 
 echo "  ── HOW IT WORKS ─────────────────────────────────────────"
 echo ""
-echo "  Monitors watch test health metrics (like \"passed on retry\" or transition"
-echo "  counts). When thresholds are crossed, they fire alarm events. When tests"
-echo "  recover, they fire recover events. These events trigger automated actions."
+echo "  Workflows are event-driven — they evaluate each time new"
+echo "  test data is ingested. A monitor watches test health and"
+echo "  fires alarm/recover events that trigger automated actions."
 echo ""
-echo "  Workflows are event-driven — they evaluate each time test data is"
-echo "  ingested, not on a schedule."
-echo ""
-box \
-  'Monitor: "Passed on retry" / "Transition count"' \
-  '  │' \
-  '  ├── ALARM  ──→  Change state + Slack + Linear' \
-  '  │' \
-  '  └── RECOVER ──→  Change state + Slack'
+printf '\033]1338;url='"'"'%s'"'"';alt='"'"'Workflow: Monitor → Alarm → Recover'"'"'\a\n' "$IMG_URL"
 echo ""
 
-echo "  ── WHAT BUILDKITE ADDS ──────────────────────────────────"
+echo "  ── MONITORS ───────────────────────────────────────────────"
 echo ""
-echo "  Actions you can wire up to alarm/recover events:"
+box \
+  "Transition Count          Track pass/fail flips over a window" \
+  "  P F P F P → score 0.8   high score = flaky test" \
+  "" \
+  "Passed on Retry           Same commit, pass + fail = flaky" \
+  "  Alarm fires immediately, recovers after 7d / 100 runs" \
+  "" \
+  "Probabilistic (Ent)       Meta's Bayesian model: predicts" \
+  "                          probability of flaking next run" \
+  "" \
+  "New Test (Beta)           Fires on first-ever execution"
 echo ""
-echo "  🔀 Change test state — automatically quarantine flaky tests"
-echo "  🏷️  Add/Remove labels — tag tests for triage"
-echo "  💬 Slack notification — alert the owning team"
-echo "  🔗 Webhook — trigger any external system"
-echo "  📋 Create Linear issue — auto-file a ticket on alarm"
+
+echo "  ── ACTIONS ────────────────────────────────────────────────"
+echo ""
+box \
+  "         🚨 ALARM                    ✅ RECOVER" \
+  "" \
+  "  🔇 Change state → muted     ▶ Change state → enabled" \
+  "  🏷️  Add label \"flaky\"        🏷️  Remove label \"flaky\"" \
+  "  💬 Slack → #test-health      💬 Slack → #test-health" \
+  "  🔗 Webhook → PagerDuty" \
+  "  📋 Create Linear issue"
 echo ""
 
 echo "  ── THE PAYOFF ───────────────────────────────────────────"
 echo ""
-echo "  Flaky tests get caught and ticketed automatically. No manual triage."
-echo "  Tests self-heal: quarantine on alarm, restore on recovery."
+echo "  Flaky tests get caught and quarantined automatically."
+echo "  When they stabilize, they re-enable themselves. No manual"
+echo "  triage. Tests self-heal: mute on alarm, restore on recover."
 echo ""
-echo "  Suite: $SUITE_URL"
+echo "  🔗 Suite: $SUITE_URL"
 echo "  📖 docs.buildkite.com/test-engine/workflows"
 
 buildkite-agent annotate --style info --context test-engine-workflows << ANNOTATION
 ## :bar_chart: Test Engine Workflows — Monitors & Actions
 \`\`\`
 Monitor: "Passed on retry" / "Transition count"
-    ├── 🚨 ALARM  ──→  Change state + Slack + Linear
-    └── 🟢 RECOVER ──→  Change state + Slack
+    ├── 🚨 ALARM  ──→  Mute + Label + Slack + Linear
+    └── 🟢 RECOVER ──→  Enable + Remove label + Slack
 \`\`\`
-**Actions:** Change state · Add/Remove labels · Slack · Webhook · Create Linear issue
+**Monitors:** Transition Count · Passed on Retry · Probabilistic (Enterprise) · New Test (Beta)
 
-Flaky tests get caught and ticketed automatically. Tests self-heal: quarantine on alarm, restore on recovery.
+**Actions:** Change state · Add/Remove labels · Slack · Webhook · Create Linear issue
 - 🔗 [Test Suite]($SUITE_URL)
 - 📖 [Workflows docs](https://buildkite.com/docs/test-engine/workflows)
+- 📖 [Monitors](https://buildkite.com/docs/test-engine/workflows/monitors) · [Actions](https://buildkite.com/docs/test-engine/workflows/actions)
 ANNOTATION
 
 echo ""
