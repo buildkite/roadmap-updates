@@ -1,51 +1,80 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/_lib.sh"
 
-echo "+++ :merged: GitHub Merge Queue — Conditionals"
+echo "+++ :merge: GitHub Merge Queue Support"
 echo ""
-echo "  Buildkite sets env vars when GitHub merge queue triggers a build."
+
+echo "  ── THE PROBLEM ──────────────────────────────────────────"
+echo ""
+echo "  PRs pass CI individually, then break main when merged together. The faster"
+echo "  your team ships, the worse this gets — engineers waste time rebasing,"
+echo "  re-running CI, and playing \"merge chicken.\""
+echo ""
+
+echo "  ── HOW IT WORKS ─────────────────────────────────────────"
+echo ""
+echo "  GitHub batches PRs into \"merge groups.\" Each group gets a speculative"
+echo "  commit — the exact code that main will look like if the group merges."
+echo "  CI runs against reality, not hope."
+echo ""
+
+echo "  ── WHAT BUILDKITE ADDS ──────────────────────────────────"
+echo ""
+echo "  First-class merge queue builds — not a branch hack. Dedicated UI section,"
+echo "  unique env vars, native conditionals."
+echo ""
+echo "  Auto-cancel invalidated builds — queue reshuffles? Stale builds die"
+echo "  immediately. No wasted compute."
+echo ""
+echo "  Conditional steps — run heavy checks only in the queue:"
+echo ""
+box \
+  'if: build.merge_queue.base_commit != null' \
+  'command: run-full-integration-suite.sh'
+echo ""
+echo "  PR builds stay fast. Merge queue builds run the full suite."
+echo ""
+echo "  Smart file detection with if_changed — only test what the PR actually"
+echo "  touched, even inside the queue."
+echo ""
+
+echo "  ── LIVE CHECK ───────────────────────────────────────────"
 echo ""
 
 MQ_BASE_BRANCH="${BUILDKITE_MERGE_QUEUE_BASE_BRANCH:-""}"
 MQ_BASE_COMMIT="${BUILDKITE_MERGE_QUEUE_BASE_COMMIT:-""}"
-MQ_TRIGGERED="${BUILDKITE_MERGE_QUEUE_TRIGGERED:-""}"
 
 if [[ -n "$MQ_BASE_BRANCH" ]]; then
   echo "  🟢 This IS a merge queue build!"
   echo "  BUILDKITE_MERGE_QUEUE_BASE_BRANCH  = $MQ_BASE_BRANCH"
   echo "  BUILDKITE_MERGE_QUEUE_BASE_COMMIT  = $MQ_BASE_COMMIT"
-  echo "  BUILDKITE_MERGE_QUEUE_TRIGGERED    = $MQ_TRIGGERED"
 else
   echo "  ℹ️  Regular build (not merge queue)"
   echo "  BUILDKITE_MERGE_QUEUE_BASE_BRANCH  = (not set)"
   echo "  BUILDKITE_MERGE_QUEUE_BASE_COMMIT  = (not set)"
-  echo "  BUILDKITE_MERGE_QUEUE_TRIGGERED    = (not set)"
 fi
+echo ""
 
+echo "  ── THE PAYOFF ───────────────────────────────────────────"
 echo ""
-echo "  ┌─────────────────────────────────────────────────────┐"
-echo "  │  steps:                                             │"
-echo '  │    - label: "Merge queue validation"                │'
-echo "  │      if: build.merge_queue.base_commit != null      │"
-echo "  │      command: run-merge-checks.sh                   │"
-echo "  └─────────────────────────────────────────────────────┘"
+echo "  main stays green. Engineers stop babysitting merges. CI spend goes down"
+echo "  (redundant builds auto-killed)."
 echo ""
-echo "  🔀 if: != null ──→ only in merge queue"
-echo "  🚫 if: == null ──→ skip during merge queue"
-echo "  ⚡ Auto-cancel invalidated merge groups"
 echo "  📖 docs.buildkite.com/pipelines/tutorials/github-merge-queue"
-echo "  📝 Blog: Using GitHub merge queues with Buildkite"
 
 buildkite-agent annotate --style info --context merge-queue << 'ANNOTATION'
-## :merged: GitHub Merge Queue
+## :merge: GitHub Merge Queue Support
 ```yaml
 steps:
-  - label: "Merge validation"
+  - label: "Full integration suite"
     if: build.merge_queue.base_commit != null
-    command: run-merge-checks.sh
+    command: run-full-integration-suite.sh
 ```
+**Features:** First-class merge queue builds · Auto-cancel invalidated builds · Conditional steps · Smart `if_changed` detection
+
+main stays green. Engineers stop babysitting merges. CI spend goes down.
 - 📖 [Merge Queue tutorial](https://buildkite.com/docs/pipelines/tutorials/github-merge-queue)
-- 📝 [Blog: Using GitHub merge queues](https://buildkite.com/resources/blog/using-github-merge-queues-with-buildkite)
 ANNOTATION
 
 echo ""

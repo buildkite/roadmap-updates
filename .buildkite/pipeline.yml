@@ -21,15 +21,20 @@ steps:
         key: "dynamic-pipeline"
         command: scripts/02-dynamic-pipeline.sh
 
-      - label: ":claude: 1c. AI Failure Analysis (Claude)"
+      - label: ":webhook: 1c. Universal Pipeline Triggers"
+        key: "pipeline-triggers"
+        command: scripts/13-pipeline-triggers.sh
+
+      - label: ":claude: 1d. AI Failure Analysis (Claude)"
         key: "ai-failure-analysis"
         command: scripts/12-ai-failure-analysis.sh
         soft_fail: true
         plugins:
-          - buildkite-plugins/claude-summarize#v1.1.0:
+          - ./.buildkite/plugins/claude-summarize:
               api_key: "$$ANTHROPIC_API_KEY"
               model: "claude-sonnet-4-6"
               trigger: "on-failure"
+              annotation_scope: "job"
               custom_prompt: "A production deployment failed. Analyze the logs, identify the root cause, and provide clear next steps for the developer. Be concise and actionable."
 
   # ──────────────────────────────────────────────
